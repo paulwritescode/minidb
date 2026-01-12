@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniDB - SQL Interface</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Zinc base colors */
+            --zinc-50: #fafafa;
+            --zinc-100: #f4f4f5;
+            --zinc-200: #e4e4e7;
+            --zinc-300: #d4d4d8;
+            --zinc-400: #a1a1aa;
+            --zinc-500: #71717a;
+            --zinc-600: #52525b;
+            --zinc-700: #3f3f46;
+            --zinc-800: #27272a;
+            --zinc-900: #18181b;
+            --zinc-950: #09090b;
+            
+            /* Orange theme colors */
+            --orange-50: #fff7ed;
+            --orange-100: #ffedd5;
+            --orange-200: #fed7aa;
+            --orange-300: #fdba74;
+            --orange-400: #fb923c;
+            --orange-500: #f97316;
+            --orange-600: #ea580c;
+            --orange-700: #c2410c;
+            --orange-800: #9a3412;
+            --orange-900: #7c2d12;
+            --orange-950: #431407;
+            
+            /* Semantic colors */
+            --background: var(--zinc-950);
+            --foreground: var(--zinc-50);
+            --card: var(--zinc-900);
+            --card-foreground: var(--zinc-50);
+            --popover: var(--zinc-900);
+            --popover-foreground: var(--zinc-50);
+            --primary: var(--orange-500);
+            --primary-foreground: var(--zinc-50);
+            --secondary: var(--zinc-800);
+            --secondary-foreground: var(--zinc-200);
+            --muted: var(--zinc-800);
+            --muted-foreground: var(--zinc-400);
+            --accent: var(--zinc-800);
+            --accent-foreground: var(--zinc-200);
+            --destructive: #ef4444;
+            --destructive-foreground: var(--zinc-50);
+            --border: var(--zinc-800);
+            --input: var(--zinc-800);
+            --ring: var(--orange-500);
+            --radius: 0.5rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+            font-feature-settings: "liga" 1, "calt" 1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--orange-600) 0%, var(--orange-700) 100%);
+            border-radius: var(--radius);
+            color: var(--primary-foreground);
+            border: 1px solid var(--border);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .sql-panel, .tables-panel {
+            background-color: var(--card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .sql-input {
+            width: 100%;
+            height: 120px;
+            background-color: var(--input);
+            border: 1px solid var(--border);
+            border-radius: calc(var(--radius) - 2px);
+            padding: 0.75rem;
+            color: var(--foreground);
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: vertical;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .sql-input:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 2px var(--ring);
+        }
+        
+        .sql-input::placeholder {
+            color: var(--muted-foreground);
+        }
+        
+        .execute-btn {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: calc(var(--radius) - 2px);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+            transition: all 0.2s ease-in-out;
+            font-family: inherit;
+        }
+        
+        .execute-btn:hover {
+            background: var(--orange-600);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgb(249 115 22 / 0.4);
+        }
+        
+        .execute-btn:active {
+            transform: translateY(0);
+        }
+        
+        .result-panel {
+            background-color: var(--card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-top: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .result-message {
+            padding: 0.75rem;
+            border-radius: calc(var(--radius) - 2px);
+            margin-bottom: 1rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .result-success {
+            background-color: rgb(34 197 94 / 0.1);
+            border-left: 4px solid #22c55e;
+            color: #22c55e;
+        }
+        
+        .result-error {
+            background-color: rgb(239 68 68 / 0.1);
+            border-left: 4px solid var(--destructive);
+            color: var(--destructive);
+        }
+        
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            background-color: var(--input);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        
+        .result-table th,
+        .result-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+        
+        .result-table th {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            font-weight: 600;
+        }
+        
+        .result-table tr:hover {
+            background-color: var(--accent);
+        }
+        
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .tables-list {
+            list-style: none;
+        }
+        
+        .table-item {
+            background-color: var(--input);
+            margin-bottom: 0.75rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: border-color 0.2s ease-in-out;
+        }
+        
+        .table-item:hover {
+            border-color: var(--primary);
+        }
+        
+        .table-header {
+            padding: 0.75rem;
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        
+        .table-header:hover {
+            background-color: var(--accent);
+        }
+        
+        .table-details {
+            padding: 0.75rem;
+            display: none;
+            background-color: var(--card);
+        }
+        
+        .table-details.show {
+            display: block;
+        }
+        
+        .column-info {
+            background-color: var(--muted);
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 0.8125rem;
+            color: var(--muted-foreground);
+        }
+        
+        .examples {
+            background-color: var(--card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-top: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .example-queries {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .example-query {
+            background-color: var(--input);
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .example-query:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+        }
+        
+        .example-query .title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .example-query .query {
+            color: var(--orange-300);
+            font-family: inherit;
+            font-size: 0.8125rem;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ MiniDB</h1>
+            <p>Interactive SQL Database Management System</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sql-panel">
+                <h2 class="panel-title">SQL Command Interface</h2>
+                <form hx-post="/execute-sql" hx-target="#result-container" hx-swap="innerHTML">
+                    <textarea 
+                        name="sql" 
+                        class="sql-input" 
+                        placeholder="Enter your SQL command here...&#10;&#10;Examples:&#10;CREATE TABLE users (id INT PRIMARY UNIQUE INDEX, name STRING, email STRING UNIQUE)&#10;INSERT INTO users (id, name, email) VALUES (1, 'John Doe', 'john@example.com')&#10;SELECT * FROM users&#10;UPDATE users SET name='Jane Doe' WHERE id=1&#10;DELETE FROM users WHERE id=1"
+                        id="sql-input"
+                    ></textarea>
+                    <button type="submit" class="execute-btn">Execute SQL</button>
+                </form>
+            </div>
+            
+            <div class="tables-panel">
+                <h2 class="panel-title">Database Tables</h2>
+                <div id="tables-container" hx-get="/tables" hx-trigger="load, every 5s" hx-swap="innerHTML">
+                    Loading tables...
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-panel">
+            <h2 class="panel-title">Query Results</h2>
+            <div id="result-container">
+                <p style="color: #888;">Execute a SQL command to see results here.</p>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h2 class="panel-title">Example SQL Commands</h2>
+            <div class="example-queries">
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Create Table</div>
+                    <div class="query">CREATE TABLE users (id INT PRIMARY UNIQUE INDEX, name STRING, email STRING UNIQUE, active BOOLEAN)</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Insert Data</div>
+                    <div class="query">INSERT INTO users (id, name, email, active) VALUES (1, 'John Doe', 'john@example.com', true)</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Select All</div>
+                    <div class="query">SELECT * FROM users</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Select with WHERE</div>
+                    <div class="query">SELECT * FROM users WHERE active=true</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Update Record</div>
+                    <div class="query">UPDATE users SET active=false WHERE id=1</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Delete Record</div>
+                    <div class="query">DELETE FROM users WHERE id=1</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Create Orders Table</div>
+                    <div class="query">CREATE TABLE orders (id INT PRIMARY UNIQUE INDEX, user_id INT INDEX, product STRING, amount INT)</div>
+                </div>
+                <div class="example-query" onclick="setQuery(this.querySelector('.query').textContent)">
+                    <div class="title">Join Tables</div>
+                    <div class="query">SELECT * FROM users JOIN orders ON users.id=orders.user_id</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setQuery(query) {
+            document.getElementById('sql-input').value = query;
+        }
+        
+        function toggleTable(element) {
+            const details = element.nextElementSibling;
+            details.classList.toggle('show');
+            const arrow = element.querySelector('.arrow');
+            arrow.textContent = details.classList.contains('show') ? '▼' : '▶';
+        }
+    </script>
+</body>
+</html>

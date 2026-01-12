@@ -1,0 +1,30 @@
+{% if success %}
+    <div class="result-message result-success">
+        {{ message }}
+    </div>
+    
+    {% if result and type == "select" %}
+        <table class="result-table">
+            <thead>
+                <tr>
+                    {% for key in result[0].keys() %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in result %}
+                    <tr>
+                        {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% else %}
+    <div class="result-message result-error">
+        {{ message }}
+    </div>
+{% endif %}

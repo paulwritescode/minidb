@@ -1,0 +1,46 @@
+{% if success %}
+    {% if tables %}
+        <ul class="tables-list">
+            {% for table_name, table_info in tables.items() %}
+                <li class="table-item">
+                    <div class="table-header" onclick="toggleTable(this)">
+                        <span><strong>{{ table_name }}</strong> ({{ table_info.row_count }} rows)</span>
+                        <span class="arrow">▶</span>
+                    </div>
+                    <div class="table-details">
+                        <h4 style="color: var(--primary); margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 600;">Columns:</h4>
+                        {% for column in table_info.columns %}
+                            <div class="column-info">
+                                <strong>{{ column.name }}</strong>: {{ column.type }}
+                                {% if column.primary %}<span style="color: var(--destructive); font-weight: 500;">[PRIMARY]</span>{% endif %}
+                                {% if column.unique %}<span style="color: var(--orange-400); font-weight: 500;">[UNIQUE]</span>{% endif %}
+                                {% if column.index %}<span style="color: #22c55e; font-weight: 500;">[INDEX]</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        {% if table_info.indexes %}
+                            <h4 style="color: var(--primary); margin: 1rem 0 0.75rem 0; font-size: 0.875rem; font-weight: 600;">Indexes:</h4>
+                            <div style="color: #22c55e; font-size: 0.8125rem;">{{ table_info.indexes | join(', ') }}</div>
+                        {% endif %}
+                        
+                        <div style="margin-top: 1rem;">
+                            <button 
+                                class="execute-btn" 
+                                style="font-size: 0.75rem; padding: 0.5rem 0.75rem; background: var(--secondary); color: var(--secondary-foreground);"
+                                onclick="setQuery('SELECT * FROM {{ table_name }}')"
+                            >
+                                View Data
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p style="color: var(--muted-foreground); text-align: center; padding: 1.5rem; font-size: 0.875rem;">
+            No tables found. Create your first table using SQL commands!
+        </p>
+    {% endif %}
+{% else %}
+    <p style="color: var(--destructive); font-size: 0.875rem;">Error loading tables: {{ error }}</p>
+{% endif %}
