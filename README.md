@@ -15,7 +15,21 @@ This project implements a fully functional RDBMS that supports:
 
 ## 🚀 Quick Start
 
-### 1. Setup Environment
+### **Option 1: Using Makefile (Recommended)**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd minidb_todo_app
+
+# One-time setup (creates venv + installs dependencies)
+make setup
+
+# Start the web application
+make start
+```
+Opens automatically at http://127.0.0.1:8001/
+
+### **Option 2: Manual Setup**
 ```bash
 # Navigate to project directory
 cd minidb_todo_app
@@ -26,22 +40,25 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Launch Web Application
-```bash
+# Start the application
 python3 app.py
 ```
-Opens automatically at http://127.0.0.1:8001/
 
-### 3. Alternative Startup
+### **Available Make Commands**
 ```bash
-python3 start_app.py
+make setup    # Create virtual environment and install dependencies
+make start    # Start the web application
+make repl     # Start interactive REPL mode
+make install  # Update dependencies (if venv exists)
+make clean    # Remove venv and generated files
+make help     # Show all available commands
 ```
 
-### 4. Interactive REPL Mode
+### **Alternative Startup Methods**
 ```bash
-python3 minidb.py
+make repl           # Interactive command-line SQL interface
+python3 start_app.py  # Alternative startup script (manual setup required)
 ```
 
 ## 🎨 Modern Web Interface
@@ -145,6 +162,7 @@ The REPL supports both SQL commands and helper functions:
 ```
 minidb_todo_app/
 ├── .gitignore               # Git ignore rules
+├── Makefile                # Build automation and project commands
 ├── minidb.py               # Core RDBMS implementation (600+ lines)
 ├── app.py                  # FastAPI web application
 ├── start_app.py            # Alternative startup script
@@ -155,6 +173,33 @@ minidb_todo_app/
 ├── requirements.txt        # Python dependencies
 ├── README.md              # This documentation
 └── SUMMARY.md             # Project summary
+```
+
+## 💡 **Getting Started Tips**
+
+### **First Time Users**
+1. Clone the repository
+2. Run `make setup` (creates everything you need)
+3. Run `make start` (launches the web app)
+4. Visit http://127.0.0.1:8001/ in your browser
+
+### **Daily Development**
+- `make start` - Quick launch of web application
+- `make repl` - Command-line SQL interface for testing
+- `make clean` - Reset environment if needed
+
+### **Example Workflow**
+```bash
+# First time
+git clone <repo-url>
+cd minidb_todo_app
+make setup
+
+# Every time you want to use it
+make start
+
+# For command-line SQL work
+make repl
 ```
 
 ## 🔧 Technical Implementation
